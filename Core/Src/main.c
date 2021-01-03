@@ -25,7 +25,7 @@
 /* USER CODE BEGIN Includes */
 #include "eeprom.h"
 #include "usbd_cdc_if.h"
-#include "lcd4bit.h"
+#include "LiquidCrystal_I2C.h"
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -68,6 +68,8 @@ const char info[] ={"\r\n***************************************\r\n"
 /* USER CODE END PM */
 
 /* Private variables ---------------------------------------------------------*/
+I2C_HandleTypeDef hi2c1;
+
 TIM_HandleTypeDef htim1;
 TIM_HandleTypeDef htim3;
 
@@ -118,6 +120,7 @@ static void MX_GPIO_Init(void);
 static void MX_TIM1_Init(void);
 static void MX_TIM3_Init(void);
 static void MX_USART1_UART_Init(void);
+static void MX_I2C1_Init(void);
 /* USER CODE BEGIN PFP */
 void startup (void);
 void Process_UART_Data(char* Data);
@@ -211,13 +214,14 @@ int main(void)
   MX_TIM3_Init();
   MX_USART1_UART_Init();
   MX_USB_DEVICE_Init();
+  MX_I2C1_Init();
   /* USER CODE BEGIN 2 */
   HAL_TIM_Base_Start(&htim1);
   HAL_TIM_PWM_Start(PWM_htim,PWM_chanel);
   __HAL_TIM_SET_COMPARE(PWM_htim,PWM_chanel,Min_Real_Throttle);
 
-  lcd_init();
-  lcd_hide_cursor();
+  lcd_init(0x27, 4, 20);
+  lcd_noCursor();
   startup();
   Verify_Unique();
   /* USER CODE END 2 */
@@ -309,6 +313,40 @@ void SystemClock_Config(void)
   {
     Error_Handler();
   }
+}
+
+/**
+  * @brief I2C1 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_I2C1_Init(void)
+{
+
+  /* USER CODE BEGIN I2C1_Init 0 */
+
+  /* USER CODE END I2C1_Init 0 */
+
+  /* USER CODE BEGIN I2C1_Init 1 */
+
+  /* USER CODE END I2C1_Init 1 */
+  hi2c1.Instance = I2C1;
+  hi2c1.Init.ClockSpeed = 100000;
+  hi2c1.Init.DutyCycle = I2C_DUTYCYCLE_2;
+  hi2c1.Init.OwnAddress1 = 0;
+  hi2c1.Init.AddressingMode = I2C_ADDRESSINGMODE_7BIT;
+  hi2c1.Init.DualAddressMode = I2C_DUALADDRESS_DISABLE;
+  hi2c1.Init.OwnAddress2 = 0;
+  hi2c1.Init.GeneralCallMode = I2C_GENERALCALL_DISABLE;
+  hi2c1.Init.NoStretchMode = I2C_NOSTRETCH_DISABLE;
+  if (HAL_I2C_Init(&hi2c1) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN I2C1_Init 2 */
+
+  /* USER CODE END I2C1_Init 2 */
+
 }
 
 /**
@@ -456,30 +494,26 @@ static void MX_GPIO_Init(void)
   __HAL_RCC_GPIOB_CLK_ENABLE();
   __HAL_RCC_GPIOE_CLK_ENABLE();
   __HAL_RCC_GPIOA_CLK_ENABLE();
-  __HAL_RCC_GPIOD_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOB, LCD_RS_Pin|LCD_E_Pin|LCD_D7_Pin|LCD_D6_Pin
-                          |LCD_D5_Pin|LCD_D4_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOB, Trigger_Pin|Reset_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOD, Trigger_Pin|Reset_Pin, GPIO_PIN_RESET);
-
-  /*Configure GPIO pins : LCD_RS_Pin LCD_E_Pin LCD_D7_Pin LCD_D6_Pin
-                           LCD_D5_Pin LCD_D4_Pin */
-  GPIO_InitStruct.Pin = LCD_RS_Pin|LCD_E_Pin|LCD_D7_Pin|LCD_D6_Pin
-                          |LCD_D5_Pin|LCD_D4_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
-  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-  HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+  HAL_GPIO_WritePin(buzzer_GPIO_Port, buzzer_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pins : Trigger_Pin Reset_Pin */
   GPIO_InitStruct.Pin = Trigger_Pin|Reset_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-  HAL_GPIO_Init(GPIOD, &GPIO_InitStruct);
+  HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+
+  /*Configure GPIO pin : buzzer_Pin */
+  GPIO_InitStruct.Pin = buzzer_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(buzzer_GPIO_Port, &GPIO_InitStruct);
 
 }
 
@@ -594,7 +628,7 @@ void Verify_Unique(void)
 		{
 		  while(1)
 		  {
-			  lcd_gotoxy(4, 2);
+			  lcd_setCursor(4, 2);
 			  lcd_puts((char*)ERROR);
 			  HAL_Delay(1000);
 			  lcd_clear();
@@ -955,11 +989,11 @@ void Volume(void)
 				break;
 			case 7:
 				Min_Throttle = Value;EE_WriteVariable(0,Min_Throttle);HAL_Delay(10);
-				lcd_puts_XY(6,1,"Min Saved");HAL_Delay(250);lcd_puts_XY(6,1,"         ")
+				lcd_puts_XY(6,1,"Min Saved");HAL_Delay(250);lcd_puts_XY(6,1,"         ");
 				break;
 			case 8:
 				Max_Throttle = Value;EE_WriteVariable(1,Max_Throttle);HAL_Delay(10);
-				lcd_puts_XY(6,1,"Max Saved");HAL_Delay(250);lcd_puts_XY(6,1,"         ")
+				lcd_puts_XY(6,1,"Max Saved");HAL_Delay(250);lcd_puts_XY(6,1,"         ");
 				break;
 			case up:
 				if(Value < Max_Real_Throttle)Value += 2;
@@ -1134,7 +1168,7 @@ void Get_Number (char *NUMBER)
         case cls:
             if(i>0)i--;
             NUMBER[i] = ' ';
-            lcd_gotoxy(11+i, 3);
+            lcd_setCursor(11+i, 3);
             lcd_putch(' ');
         break;
 
@@ -1158,7 +1192,7 @@ void Get_Number (char *NUMBER)
 		if(i<7)
 		{
 		  NUMBER[i] = '.';
-		  lcd_gotoxy(11+i, 3);
+		  lcd_setCursor(11+i, 3);
 		  lcd_putch(NUMBER[i]);
 		  i++;
 		}
@@ -1168,7 +1202,7 @@ void Get_Number (char *NUMBER)
             if(i<8)
             {
               NUMBER[i] = Num + '0';
-    		  lcd_gotoxy(11+i, 3);
+    		  lcd_setCursor(11+i, 3);
     		  lcd_putch(NUMBER[i]);
               i++;
             }

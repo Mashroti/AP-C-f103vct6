@@ -61,22 +61,12 @@ extern uint8_t NewDataLineCount;
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/
-#define LCD_RS_Pin GPIO_PIN_10
-#define LCD_RS_GPIO_Port GPIOB
-#define LCD_E_Pin GPIO_PIN_11
-#define LCD_E_GPIO_Port GPIOB
-#define LCD_D7_Pin GPIO_PIN_12
-#define LCD_D7_GPIO_Port GPIOB
-#define LCD_D6_Pin GPIO_PIN_13
-#define LCD_D6_GPIO_Port GPIOB
-#define LCD_D5_Pin GPIO_PIN_14
-#define LCD_D5_GPIO_Port GPIOB
-#define LCD_D4_Pin GPIO_PIN_15
-#define LCD_D4_GPIO_Port GPIOB
-#define Trigger_Pin GPIO_PIN_2
-#define Trigger_GPIO_Port GPIOD
-#define Reset_Pin GPIO_PIN_3
-#define Reset_GPIO_Port GPIOD
+#define Trigger_Pin GPIO_PIN_0
+#define Trigger_GPIO_Port GPIOB
+#define Reset_Pin GPIO_PIN_12
+#define Reset_GPIO_Port GPIOB
+#define buzzer_Pin GPIO_PIN_1
+#define buzzer_GPIO_Port GPIOE
 /* USER CODE BEGIN Private defines */
 
 /* USER CODE END Private defines */

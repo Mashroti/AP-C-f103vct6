@@ -23,7 +23,7 @@ Idx Name          Size      VMA       LMA       File off  Algn
                   CONTENTS, ALLOC, LOAD, DATA
   9 .bss          0000002c  200001d0  08004a68  000201d0  2**2
                   ALLOC
- 10 ._user_heap_stack 00000e04  200001fc  08004a68  000201fc  2**0
+ 10 ._user_heap_stack 00002004  200001fc  08004a68  000201fc  2**0
                   ALLOC
  11 .ARM.attributes 00000029  00000000  00000000  000201d0  2**0
                   CONTENTS, READONLY
@@ -1020,7 +1020,7 @@ void *_sbrk(ptrdiff_t incr)
  8000ab0:	46bd      	mov	sp, r7
  8000ab2:	bd80      	pop	{r7, pc}
  8000ab4:	2000c000 	.word	0x2000c000
- 8000ab8:	00000800 	.word	0x00000800
+ 8000ab8:	00001000 	.word	0x00001000
  8000abc:	200001ec 	.word	0x200001ec
  8000ac0:	20000200 	.word	0x20000200
 
